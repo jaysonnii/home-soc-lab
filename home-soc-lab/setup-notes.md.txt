@@ -1,39 +1,231 @@
+# Setup Notes
+
 ## Windows VM Setup
 
-- OS:
-- VM software:
-- RAM assigned:8192 MB
-- CPU assigned:4
-- Disk size: 90 GB
-- Network mode: NAT
-- Date installed: 6/24/2026
-- Purpose:
+* OS: Windows 11 Enterprise Evaluation
+* VM Software: Oracle VirtualBox
+* RAM Assigned: 8192 MB
+* CPU Assigned: 4 cores
+* Disk Size: 90 GB
+* Network Mode: NAT
+* Date Installed: 6/24/2026
+* Purpose: Create a Windows endpoint lab machine for collecting Sysmon telemetry, reviewing Windows security events, and practicing basic SOC-style alert triage.
 
+---
+
+## VirtualBox Troubleshooting Notes
+
+During the Windows 11 VM setup, I ran into repeated black-screen issues after installation.
+
+I troubleshot the issue by:
+
+* Checking VirtualBox storage settings
+* Removing the Windows installation ISO after Windows installed
+* Confirming the virtual hard disk was still attached
+* Adjusting display settings
+* Restarting the VM until Windows successfully reached the login screen
+
+This helped me practice basic virtualization troubleshooting, boot troubleshooting, and careful step-by-step problem solving.
+
+---
 
 ## Sysmon Setup
 
-- Tool installed: Sysmon
-- Source: Microsoft Sysinternals
-- Install command used:
+* Tool Installed: Sysmon
+* Source: Microsoft Sysinternals
+* Installed On: Windows 11 Enterprise Evaluation VM
+* Purpose: Collect endpoint telemetry such as process creation events, process termination events, and command-line activity.
+
+### Install Command Used
 
 ```powershell
 .\Sysmon64.exe -accepteula -i
+```
 
-Service checked with:
+### Service Check Command
+
+```powershell
 Get-Service Sysmon64
+```
 
-Event Viewer location:
+### Event Viewer Location
+
+```text
 Applications and Services Logs > Microsoft > Windows > Sysmon > Operational
+```
 
-First confirmed event:
-Event ID:
-Time:
-Process name:
+### First Confirmed Sysmon Event
+
+* Log Name: Microsoft-Windows-Sysmon/Operational
+* Source: Sysmon
+* Event ID: 1
+* Task Category: Process Create
+* Computer Name: DESKTOP-N2D9N5I
+* User: DESKTOP-N2D9N5I\socstudent
+* Screenshot: screenshots/sysmon-event-id-1-general.png
+
+---
+
+## Sysmon Investigation Evidence
+
+During the lab, I generated command-line activity from PowerShell and reviewed the related Sysmon process creation event.
+
+### Key Event
+
+* Event ID: 1
+* Task Category: Process Create
+* Image: C:\Windows\System32\net.exe
+* Command Line: "C:\WINDOWS\system32\net.exe" user
+* Parent Image: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+* Parent Command Line: "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+* User: DESKTOP-N2D9N5I\socstudent
+* Computer: DESKTOP-N2D9N5I
+* Screenshot: screenshots/sysmon-event-id-1-net-user-parent-powershell.png
+
+### Analysis Note
+
+The command `net user` lists local user accounts on a Windows system. In this lab, the activity was expected because I manually generated it. In a real SOC environment, this type of command may be reviewed because attackers can use account discovery commands to learn more about a system after gaining access.
+
+---
+
+## Splunk Setup
+
+* Tool Installed: Splunk Enterprise
+* Installed On: Windows 11 Enterprise Evaluation VM
+* Access URL: http://localhost:8000
+* Username Used: admin
+* Password: Not documented for security reasons
+* Purpose: Search Windows and Sysmon logs in a SIEM-style interface.
+
+---
+
+## Logs Added to Splunk
+
+The following Windows logs were added to Splunk:
+
+```text
+Application
+Security
+System
+Microsoft-Windows-Sysmon/Operational
+```
+
+The most important log source for this lab was:
+
+```text
+Microsoft-Windows-Sysmon/Operational
+```
+
+This log source allowed Sysmon endpoint telemetry to be searched inside Splunk.
+
+---
+
+## Splunk Searches Used
+
+### Search 1
+
+```spl
+index=* "Microsoft-Windows-Sysmon/Operational"
+```
+
+Purpose: Confirm that Sysmon logs were being ingested into Splunk.
+
+Result: Splunk returned Sysmon events from the Windows VM.
+
 Screenshot:
 
+```text
+screenshots/splunk-sysmon-events.png
+```
 
-## Troubleshooting Notes
+---
 
-During the Windows 11 VM setup, I ran into repeated black-screen issues after installation. I troubleshot by checking VirtualBox storage, removing the ISO after install, confirming the virtual hard disk was present, adjusting display settings, and restarting the VM until Windows successfully reached the login screen.
+### Search 2
 
-This helped me practice basic virtualization troubleshooting, boot troubleshooting, and careful step-by-step problem solving.
+```spl
+index=* EventCode=1
+```
+
+Purpose: Find Sysmon process creation events.
+
+Result: Splunk returned Event ID 1 process creation logs.
+
+Screenshot:
+
+```text
+screenshots/splunk-event-id-1-search.png
+```
+
+---
+
+### Search 3
+
+```spl
+index=* net.exe
+```
+
+Purpose: Search for activity related to `net.exe`.
+
+Result: Splunk returned events showing `net.exe` activity, including activity related to the `net user` command used in the investigation.
+
+Screenshot:
+
+```text
+screenshots/splunk-net-exe-search.png
+```
+
+---
+
+### Search 4
+
+```spl
+index=* powershell
+```
+
+Purpose: Search for PowerShell-related activity.
+
+Result: Splunk returned PowerShell-related events, confirming that PowerShell activity was searchable in the SIEM.
+
+Screenshot:
+
+```text
+screenshots/splunk-powershell-search.png
+```
+
+---
+
+## Splunk Validation Summary
+
+Splunk successfully ingested Windows and Sysmon logs from the Windows 11 VM.
+
+I was able to search for:
+
+* Sysmon operational logs
+* Event ID 1 process creation events
+* `net.exe` activity
+* PowerShell-related activity
+
+This confirmed that the lab could support basic SOC-style alert triage and endpoint investigation.
+
+---
+
+## Screenshots Collected
+
+```text
+screenshots/windows-vm-running.png
+screenshots/sysmon-operational-log.png
+screenshots/sysmon-event-id-1-general.png
+screenshots/sysmon-event-id-1-net-user-parent-powershell.png
+screenshots/splunk-sysmon-events.png
+screenshots/splunk-event-id-1-search.png
+screenshots/splunk-net-exe-search.png
+screenshots/splunk-powershell-search.png
+```
+
+---
+
+## Final Notes
+
+This setup created a working beginner SOC lab using Windows 11, Sysmon, Event Viewer, and Splunk.
+
+The lab successfully demonstrated endpoint telemetry collection, SIEM log searching, process creation investigation, and incident documentation.
