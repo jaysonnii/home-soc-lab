@@ -1,0 +1,8 @@
+Event ID: 1
+Task Category: Process Create
+Image: C:\Windows\System32\net.exe
+CommandLine: "C:\WINDOWS\system32\net.exe" user
+ParentImage: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+ParentCommandLine: "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+User: DESKTOP-N2D9N5I\socstudent
+Computer: DESKTOP-N2D9N5I

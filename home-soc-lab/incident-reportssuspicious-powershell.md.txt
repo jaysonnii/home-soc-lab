@@ -1,0 +1,102 @@
+# Suspicious PowerShell User Enumeration Investigation
+
+## Scenario
+
+A command was executed from PowerShell that launched `net.exe user`. I investigated the event using Sysmon logs in Windows Event Viewer.
+
+This was expected activity in my lab because I manually ran the command. However, in a real SOC environment, this type of activity could be reviewed because attackers may use account discovery commands to learn about users on a system.
+
+## Environment
+
+* Host: Windows 11 Enterprise Evaluation VM
+* Computer Name: DESKTOP-N2D9N5I
+* User: DESKTOP-N2D9N5I\socstudent
+* Telemetry Source: Sysmon
+* Log Source: Microsoft-Windows-Sysmon/Operational
+* Tool Used: Windows Event Viewer
+* Date: 6/25/2026
+
+## Detection Trigger
+
+Sysmon generated an Event ID 1 process creation event.
+
+The event showed that PowerShell launched `net.exe` with the `user` argument.
+
+## Evidence
+
+* Event ID: 1
+* Task Category: Process Create
+* Image: C:\Windows\System32\net.exe
+* Command Line: "C:\WINDOWS\system32\net.exe" user
+* Parent Image: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+* Parent Command Line: "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+* User: DESKTOP-N2D9N5I\socstudent
+* Computer: DESKTOP-N2D9N5I
+
+## Screenshot Evidence
+
+Screenshot file:
+
+```text
+screenshots/sysmon-event-id-1-net-user-parent-powershell.png
+```
+
+## Analysis
+
+The command `net user` lists local user accounts on a Windows system.
+
+In this lab, the command was benign because I manually executed it to generate Sysmon telemetry. The activity was expected and part of the lab setup.
+
+In a real environment, this activity may deserve review because account discovery can be used by attackers after gaining access to a system. Seeing `net.exe user` launched from PowerShell could indicate that a user or script is checking local account information.
+
+The most important part of this event is the parent-child process relationship:
+
+```text
+powershell.exe → net.exe user
+```
+
+This shows that PowerShell was used to launch a Windows account discovery command.
+
+## What I Checked
+
+* Event ID
+* Process image
+* Command line
+* Parent process
+* Parent command line
+* User context
+* Hostname
+* Timestamp
+* Sysmon log source
+
+## Initial Assessment
+
+This event is not malicious in my lab because I generated it myself.
+
+However, in a real SOC investigation, I would continue checking:
+
+* Was the user expected to run this command?
+* Did similar commands run before or after this event?
+* Did PowerShell execute other discovery commands?
+* Did the same user run commands like `whoami`, `ipconfig`, `net localgroup`, or `nltest`?
+* Was the command run interactively or by a script?
+* Were there any failed logins or suspicious remote access events around the same time?
+
+## Remediation / Next Steps
+
+For a real environment, next steps would include:
+
+* Review additional Sysmon events from the same user
+* Check other PowerShell activity around the same timestamp
+* Look for repeated discovery commands
+* Review Windows Security logs for login activity
+* Confirm whether the activity was expected
+* Escalate if the activity was unexpected or part of a larger suspicious pattern
+
+## Lessons Learned
+
+I learned how Sysmon Event ID 1 records process creation activity and how parent-child process relationships can help with security investigations.
+
+I also learned that a command can be harmless in a lab but still useful to investigate because the same behavior may be suspicious in a real environment.
+
+This investigation helped me practice basic SOC analyst skills, including log review, event triage, command-line analysis, and incident documentation.

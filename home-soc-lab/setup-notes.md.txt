@@ -1,0 +1,39 @@
+## Windows VM Setup
+
+- OS:
+- VM software:
+- RAM assigned:8192 MB
+- CPU assigned:4
+- Disk size: 90 GB
+- Network mode: NAT
+- Date installed: 6/24/2026
+- Purpose:
+
+
+## Sysmon Setup
+
+- Tool installed: Sysmon
+- Source: Microsoft Sysinternals
+- Install command used:
+
+```powershell
+.\Sysmon64.exe -accepteula -i
+
+Service checked with:
+Get-Service Sysmon64
+
+Event Viewer location:
+Applications and Services Logs > Microsoft > Windows > Sysmon > Operational
+
+First confirmed event:
+Event ID:
+Time:
+Process name:
+Screenshot:
+
+
+## Troubleshooting Notes
+
+During the Windows 11 VM setup, I ran into repeated black-screen issues after installation. I troubleshot by checking VirtualBox storage, removing the ISO after install, confirming the virtual hard disk was present, adjusting display settings, and restarting the VM until Windows successfully reached the login screen.
+
+This helped me practice basic virtualization troubleshooting, boot troubleshooting, and careful step-by-step problem solving.
