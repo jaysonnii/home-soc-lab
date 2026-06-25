@@ -1,3 +1,11 @@
+## Project Files
+
+The full project files are located in the `home-soc-lab` folder.
+
+- Incident report: `home-soc-lab/incident-reports/suspicious-powershell.md`
+- Screenshots: `home-soc-lab/screenshots/`
+- Setup notes: `home-soc-lab/setup-notes.md`
+
 ## Troubleshooting
 
 During setup, I resolved a VirtualBox black-screen issue by checking storage, removing the installation ISO after Windows installed, and adjusting display setting0s.
