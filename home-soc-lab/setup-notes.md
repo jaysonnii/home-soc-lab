@@ -209,6 +209,54 @@ This confirmed that the lab could support basic SOC-style alert triage and endpo
 
 ---
 
+## Failed Login Investigation Setup
+
+I generated failed login attempts by locking the Windows VM and entering an incorrect password multiple times.
+
+Evidence was reviewed in:
+
+```text
+Event Viewer > Windows Logs > Security
+```
+
+Main Event ID:
+
+```text
+4625 - An account failed to log on
+```
+
+Key details observed:
+
+```text
+Event ID: 4625
+Message: An account failed to log on
+Account Name: socstudent
+Failure Reason: Unknown user name or bad password
+Logon Type: 2
+Computer Name: DESKTOP-N2D9N5I
+Log Source in Splunk: WinEventLog:Security
+```
+
+Splunk searches used:
+
+```spl
+index=* EventCode=4625
+index=* "An account failed to log on"
+index=* 4625
+```
+
+Screenshots saved:
+
+```text
+screenshots/event-viewer-failed-login-4625.png
+screenshots/splunk-failed-login-4625.png
+screenshots/splunk-failed-login-details.png
+screenshots/splunk-failed-login-search-results.png
+```
+
+This investigation helped me practice authentication log review, Windows Security log analysis, SIEM searching, and basic SOC triage.
+
+
 ## Screenshots Collected
 
 ```text
@@ -220,6 +268,10 @@ screenshots/splunk-sysmon-events.png
 screenshots/splunk-event-id-1-search.png
 screenshots/splunk-net-exe-search.png
 screenshots/splunk-powershell-search.png
+screenshots/event-viewer-failed-login-4625.png
+screenshots/splunk-failed-login-4625.png
+screenshots/splunk-failed-login-details.png
+screenshots/splunk-failed-login-search-results.png
 ```
 
 ---
