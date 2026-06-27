@@ -2,9 +2,9 @@
 
 ## Overview
 
-This project is a beginner Security Operations Center lab built to practice Windows logging, endpoint telemetry, SIEM searching, and basic alert triage.
+This project is a beginner Security Operations Center lab built to practice Windows logging, endpoint telemetry, SIEM searching, authentication log review, and basic alert triage.
 
-I used a Windows 11 Enterprise Evaluation virtual machine with Sysmon and Splunk to collect, search, and investigate Windows process creation events.
+I used a Windows 11 Enterprise Evaluation virtual machine with Sysmon and Splunk to collect, search, and investigate Windows process creation events and failed login activity.
 
 The goal of this project is to show hands-on cybersecurity learning, basic SOC investigation skills, and clear technical documentation.
 
@@ -12,9 +12,10 @@ The goal of this project is to show hands-on cybersecurity learning, basic SOC i
 
 The full project files are located in the `home-soc-lab` folder.
 
-* Incident report: `home-soc-lab/incident-reports/suspicious-powershell.md`
+* Incident reports: `home-soc-lab/incident-reports/`
 * Screenshots: `home-soc-lab/screenshots/`
 * Setup notes: `home-soc-lab/setup-notes.md`
+* Splunk searches: `home-soc-lab/queries/splunk-searches.md`
 
 ## Lab Goal
 
@@ -25,8 +26,9 @@ The goal of this lab was to:
 * Add Windows and Sysmon logs to Splunk
 * Generate security-relevant Windows activity
 * Search endpoint logs in Splunk
-* Investigate a process creation event
-* Document findings in an incident-style report
+* Investigate process creation activity
+* Investigate failed login activity
+* Document findings in incident-style reports
 
 ## Tools Used
 
@@ -43,7 +45,7 @@ The goal of this lab was to:
 ```text
 Windows 11 VM
      ↓
-Sysmon
+Sysmon + Windows Security Logs
      ↓
 Windows Event Logs
      ↓
@@ -51,7 +53,7 @@ Splunk
      ↓
 Search + Alert Triage
      ↓
-Incident Report
+Incident Reports
 ```
 
 ## Skills Demonstrated
@@ -64,6 +66,8 @@ Incident Report
 * SIEM searching
 * Process creation log analysis
 * Parent-child process analysis
+* Authentication log review
+* Failed login investigation
 * Command-line investigation
 * Basic SOC alert triage
 * Incident documentation
@@ -80,11 +84,13 @@ index=* "Microsoft-Windows-Sysmon/Operational"
 index=* EventCode=1
 index=* net.exe
 index=* powershell
+index=* EventCode=4625
+index=* "An account failed to log on"
 ```
 
-These searches confirmed that Sysmon telemetry was searchable in Splunk and could be used for basic SOC-style investigation.
+These searches confirmed that Sysmon telemetry and Windows Security logs were searchable in Splunk and could be used for basic SOC-style investigation.
 
-## Investigation Completed
+## Investigations Completed
 
 ### Suspicious PowerShell User Enumeration Investigation
 
@@ -108,6 +114,8 @@ This helped me practice authentication log review, Windows Security log analysis
 
 ## Evidence Collected
 
+### Suspicious PowerShell User Enumeration Evidence
+
 Key evidence from the Sysmon event:
 
 ```text
@@ -118,6 +126,20 @@ Command Line: "C:\WINDOWS\system32\net.exe" user
 Parent Image: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
 User: DESKTOP-N2D9N5I\socstudent
 Log Source: Microsoft-Windows-Sysmon/Operational
+```
+
+### Failed Login Evidence
+
+Key evidence from the Windows Security event:
+
+```text
+Event ID: 4625
+Message: An account failed to log on
+Account Name: socstudent
+Failure Reason: Unknown user name or bad password
+Logon Type: 2
+Computer Name: DESKTOP-N2D9N5I
+Log Source in Splunk: WinEventLog:Security
 ```
 
 ## Screenshots
@@ -141,12 +163,13 @@ splunk-failed-login-details.png
 splunk-failed-login-search-results.png
 ```
 
-## Incident Report
+## Incident Reports
 
-The full investigation is documented here:
+The full investigations are documented here:
 
 ```text
 home-soc-lab/incident-reports/suspicious-powershell.md
+home-soc-lab/incident-reports/failed-login-investigation.md
 ```
 
 ## Troubleshooting
@@ -167,16 +190,16 @@ This helped me practice virtualization troubleshooting and careful step-by-step 
 
 Through this lab, I learned how Sysmon records process creation events and how those logs can be searched in Splunk.
 
-I also learned how important parent-child process relationships are in security investigations. In this case, seeing PowerShell launch `net.exe user` helped me understand how analysts can connect user activity, command-line behavior, and possible discovery techniques.
+I also learned how Windows records failed login attempts using Security Event ID 4625 and how authentication events can be reviewed in both Event Viewer and Splunk.
 
-This project helped me practice basic SOC analyst skills, including log review, SIEM searching, event triage, command-line analysis, and incident documentation.
+This project helped me practice basic SOC analyst skills, including log review, SIEM searching, event triage, command-line analysis, authentication log review, and incident documentation.
 
 ## Future Improvements
 
 Planned improvements:
 
-* Create a failed login investigation
 * Create a suspicious PowerShell command investigation
 * Add Wazuh for endpoint monitoring
 * Add MITRE ATT&CK mapping
 * Add detection notes and saved Splunk searches
+* Create a basic dashboard in Splunk
