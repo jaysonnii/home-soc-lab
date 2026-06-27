@@ -1,0 +1,156 @@
+# Failed Login Investigation
+
+## Scenario
+
+I generated failed login attempts inside my Windows 11 lab VM and investigated the activity using Windows Event Viewer and Splunk.
+
+This activity was expected because I manually created the failed logins for the lab. However, in a real SOC environment, failed login activity is important to review because it may indicate password guessing, brute-force attempts, password spraying, misconfigured services, or unauthorized access attempts.
+
+## Environment
+
+* Host: Windows 11 Enterprise Evaluation VM
+* Computer Name: DESKTOP-N2D9N5I
+* User Account Tested: socstudent
+* Log Source: Windows Security Log
+* SIEM Tool: Splunk Enterprise
+* Event ID Investigated: 4625
+* Date: 6/27/2026
+
+## Detection Trigger
+
+Windows generated Security Event ID 4625.
+
+Event ID 4625 means that an account failed to log on.
+
+The failed login activity was reviewed in both Windows Event Viewer and Splunk.
+
+## Evidence
+
+Key evidence from the event:
+
+```text
+Event ID: 4625
+Message: An account failed to log on
+Log Name: Security
+Source: Microsoft Windows security auditing
+Keywords: Audit Failure
+Account Name: socstudent
+Failure Reason: Unknown user name or bad password
+Logon Type: 2
+Computer Name: DESKTOP-N2D9N5I
+Log Source in Splunk: WinEventLog:Security
+Time: 6/27/2026 12:12:47 PM
+```
+
+## Screenshot Evidence
+
+Screenshots collected:
+
+```text
+screenshots/event-viewer-failed-login-4625.png
+screenshots/splunk-failed-login-4625.png
+screenshots/splunk-failed-login-details.png
+```
+
+Optional screenshot:
+
+```text
+screenshots/splunk-failed-login-search-results.png
+```
+
+## Splunk Searches Used
+
+### Search 1
+
+```spl
+index=* EventCode=4625
+```
+
+Purpose: Search for Windows Security failed login events.
+
+Result: Splunk returned multiple Event ID 4625 events from the Windows VM.
+
+### Search 2
+
+```spl
+index=* "An account failed to log on"
+```
+
+Purpose: Search for failed login events using the event message text.
+
+Result: Splunk returned failed login events showing the message “An account failed to log on.”
+
+### Search 3
+
+```spl
+index=* 4625
+```
+
+Purpose: Broad search for events containing 4625.
+
+Result: Splunk returned failed login-related events from the Security log.
+
+## Analysis
+
+Event ID 4625 is generated when a logon attempt fails on a Windows system.
+
+In this lab, I intentionally generated the failed login attempts by entering an incorrect password for the `socstudent` account. The activity was benign because it was expected and manually created for testing.
+
+The event showed the failed account name as `socstudent` and the failure reason as:
+
+```text
+Unknown user name or bad password
+```
+
+The event also showed:
+
+```text
+Logon Type: 2
+```
+
+Logon Type 2 usually means an interactive logon attempt, such as someone trying to sign in directly at the computer.
+
+In a real SOC environment, this activity would be reviewed more closely if there were many failed attempts, if the attempts targeted privileged accounts, if they came from an unusual source, or if a successful login happened shortly after multiple failures.
+
+## What I Checked
+
+During the investigation, I reviewed:
+
+* Event ID
+* Event message
+* Account name
+* Failure reason
+* Logon type
+* Computer name
+* Timestamp
+* Windows Security log source
+* Splunk search results
+* Whether the activity was expected
+
+## Initial Assessment
+
+This activity was not malicious in my lab because I generated it myself.
+
+However, in a real environment, repeated failed login events could indicate suspicious activity. Failed logins may be part of brute-force attacks, password spraying, unauthorized access attempts, or normal user error.
+
+The event should be escalated if the activity is unexpected, repeated many times, targets administrator accounts, comes from an unusual source, or is followed by a successful login.
+
+## Remediation / Next Steps
+
+For a real environment, next steps would include:
+
+* Review how many failed login attempts occurred
+* Check whether the same account had repeated failures
+* Check whether there was a successful login after the failures
+* Review the source system or source IP address if available
+* Determine whether the user expected this activity
+* Check for failed logins against privileged accounts
+* Escalate if the activity appears suspicious or repeated
+
+## Lessons Learned
+
+I learned how Windows records failed login attempts using Security Event ID 4625.
+
+I also learned how to find failed login activity in Splunk by searching for the event code and event message.
+
+This investigation helped me practice authentication log review, SIEM searching, Windows Security log analysis, and basic SOC alert triage.
