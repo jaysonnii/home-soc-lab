@@ -98,6 +98,14 @@ powershell.exe → net.exe user
 
 The command `net user` lists local user accounts on a Windows system. In my lab, this activity was expected because I manually generated it. However, in a real SOC environment, this type of activity may be reviewed because attackers can use account discovery commands to learn more about a system after gaining access.
 
+### Failed Login Investigation
+
+I generated failed login attempts in the Windows VM and investigated Windows Security Event ID 4625 using Event Viewer and Splunk.
+
+The event showed that the `socstudent` account had failed login attempts with the failure reason `Unknown user name or bad password`.
+
+This helped me practice authentication log review, Windows Security log analysis, SIEM searching, and basic SOC triage.
+
 ## Evidence Collected
 
 Key evidence from the Sysmon event:
@@ -127,6 +135,10 @@ splunk-sysmon-events.png
 splunk-event-id-1-search.png
 splunk-net-exe-search.png
 splunk-powershell-search.png
+event-viewer-failed-login-4625.png
+splunk-failed-login-4625.png
+splunk-failed-login-details.png
+splunk-failed-login-search-results.png
 ```
 
 ## Incident Report
